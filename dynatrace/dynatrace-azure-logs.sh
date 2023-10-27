@@ -28,7 +28,7 @@ readonly REQUIRE_VALID_CERTIFICATE_DEFAULT=true
 print_help()
 {
    printf "
-usage: dynatrace-azure-logs.sh --deployment-name DEPLOYMENT_NAME --arm-repository ARM_REPOSITORY --target-url TARGET_URL --target-api-token TARGET_API_TOKEN --resource-group RESOURCE_GROUP --event-hub-connection-string EVENT_HUB_CONNECTION_STRING --subscription SUBSCRIPTION_NAME [--use-existing-active-gate USE_EXISTING_ACTIVE_GATE] [--target-paas-token TARGET_PAAS_TOKEN] [--filter-config FILTER_CONFIG] [--require-valid-certificate REQUIRE_VALID_CERTIFICATE] [--enable-self-monitoring SFM_ENABLED] [--repository-release-url REPOSITORY_RELEASE_URL] [--enable-user-assigned-managed-identity ENABLE_USER_ASSIGNED_MANAGED_IDENTITY], [--az-function-https-only AZ_FUNCTION_HTTPS_ONLY]
+usage: dynatrace-azure-logs.sh --deployment-name DEPLOYMENT_NAME --arm-repository ARM_REPOSITORY --target-url TARGET_URL --target-api-token TARGET_API_TOKEN --resource-group RESOURCE_GROUP --event-hub-connection-string EVENT_HUB_CONNECTION_STRING --subscription SUBSCRIPTION_NAME [--use-existing-active-gate USE_EXISTING_ACTIVE_GATE] [--target-paas-token TARGET_PAAS_TOKEN] [--filter-config FILTER_CONFIG] [--require-valid-certificate REQUIRE_VALID_CERTIFICATE] [--enable-self-monitoring SFM_ENABLED] [--repository-release-url REPOSITORY_RELEASE_URL] [--enable-user-assigned-managed-identity ENABLE_USER_ASSIGNED_MANAGED_IDENTITY] [--az-function-https-only AZ_FUNCTION_HTTPS_ONLY]
 
 arguments:
     -h, --help              Show this help message and exit
