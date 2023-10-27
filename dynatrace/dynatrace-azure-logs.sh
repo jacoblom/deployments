@@ -28,7 +28,7 @@ readonly REQUIRE_VALID_CERTIFICATE_DEFAULT=true
 print_help()
 {
    printf "
-usage: dynatrace-azure-logs.sh --deployment-name DEPLOYMENT_NAME --arm-repository ARM_REPOSITORY --target-url TARGET_URL --target-api-token TARGET_API_TOKEN --resource-group RESOURCE_GROUP --event-hub-connection-string EVENT_HUB_CONNECTION_STRING --subscription SUBSCRIPTION_NAME [--use-existing-active-gate USE_EXISTING_ACTIVE_GATE] [--target-paas-token TARGET_PAAS_TOKEN] [--filter-config FILTER_CONFIG] [--require-valid-certificate REQUIRE_VALID_CERTIFICATE] [--enable-self-monitoring SFM_ENABLED] [--repository-release-url REPOSITORY_RELEASE_URL] [--enable-user-assigned-managed-identity ENABLE_USER_ASSIGNED_MANAGED_IDENTITY]
+usage: dynatrace-azure-logs.sh --deployment-name DEPLOYMENT_NAME --arm-repository ARM_REPOSITORY --target-url TARGET_URL --target-api-token TARGET_API_TOKEN --resource-group RESOURCE_GROUP --event-hub-connection-string EVENT_HUB_CONNECTION_STRING --subscription SUBSCRIPTION_NAME [--use-existing-active-gate USE_EXISTING_ACTIVE_GATE] [--target-paas-token TARGET_PAAS_TOKEN] [--filter-config FILTER_CONFIG] [--require-valid-certificate REQUIRE_VALID_CERTIFICATE] [--enable-self-monitoring SFM_ENABLED] [--repository-release-url REPOSITORY_RELEASE_URL] [--enable-user-assigned-managed-identity ENABLE_USER_ASSIGNED_MANAGED_IDENTITY], [--az-function-https-only AZ_FUNCTION_HTTPS_ONLY]
 
 arguments:
     -h, --help              Show this help message and exit
@@ -46,6 +46,8 @@ arguments:
                               - for Environment ActiveGate: https://<active_gate_address>:9999/e/<environment_id> (e.g. https://22.111.98.222:9999/e/abc12345)
     --target-api-token TARGET_API_TOKEN
                             Dynatrace API token. Integration requires API v2 Ingest logs Token permission.
+    --az-function-https-only AZ_FUNCTION_HTTPS_ONLY
+                            Optional, 'true' by default.
     --target-paas-token TARGET_PAAS_TOKEN
                             Dynatrace PaaS token, only when deploy ActiveGate is chosen
     --resource-group RESOURCE_GROUP
@@ -89,7 +91,7 @@ ensure_param_value_given() {
 }
 
 print_all_parameters() {
-  PARAMETERS="DEPLOYMENT_NAME=$DEPLOYMENT_NAME, USE_EXISTING_ACTIVE_GATE=$USE_EXISTING_ACTIVE_GATE, TARGET_URL=$TARGET_URL, TARGET_API_TOKEN=*****, RESOURCE_GROUP=$RESOURCE_GROUP, EVENT_HUB_CONNECTION_STRING=*****, REQUIRE_VALID_CERTIFICATE=$REQUIRE_VALID_CERTIFICATE, SFM_ENABLED=$SFM_ENABLED, REPOSITORY_RELEASE_URL=$REPOSITORY_RELEASE_URL, ENABLE_USER_ASSIGNED_MANAGED_IDENTITY=$ENABLE_USER_ASSIGNED_MANAGED_IDENTITY, SUBSCRIPTION_NAME=$SUBSCRIPTION_NAME, ARM_REPOSITORY=$ARM_REPOSITORY",
+  PARAMETERS="DEPLOYMENT_NAME=$DEPLOYMENT_NAME, USE_EXISTING_ACTIVE_GATE=$USE_EXISTING_ACTIVE_GATE, TARGET_URL=$TARGET_URL, TARGET_API_TOKEN=*****, RESOURCE_GROUP=$RESOURCE_GROUP, EVENT_HUB_CONNECTION_STRING=*****, REQUIRE_VALID_CERTIFICATE=$REQUIRE_VALID_CERTIFICATE, SFM_ENABLED=$SFM_ENABLED, REPOSITORY_RELEASE_URL=$REPOSITORY_RELEASE_URL, ENABLE_USER_ASSIGNED_MANAGED_IDENTITY=$ENABLE_USER_ASSIGNED_MANAGED_IDENTITY, SUBSCRIPTION_NAME=$SUBSCRIPTION_NAME, ARM_REPOSITORY=$ARM_REPOSITORY, AZ_FUNCTION_HTTPS_ONLY=$AZ_FUNCTION_HTTPS_ONLY",
   if [[ "$USE_EXISTING_ACTIVE_GATE" == "false" ]]; then PARAMETERS+=", TARGET_PAAS_TOKEN=*****"; fi
   if [ -n "$FILTER_CONFIG" ]; then PARAMETERS+=", FILTER_CONFIG=$FILTER_CONFIG"; fi
   if [ -n "$TAGS" ]; then PARAMETERS+=", TAGS=$TAGS"; fi
@@ -205,6 +207,12 @@ while (( "$#" )); do
             "--target-paas-token")
                 ensure_param_value_given $1 $2
                 TARGET_PAAS_TOKEN=$2
+                shift; shift
+            ;;
+
+            "--az-function-https-only")
+                ensure_param_value_given $1 $2
+                AZ_FUNCTION_HTTPS_ONLY=$2
                 shift; shift
             ;;
 
@@ -431,7 +439,8 @@ if [ "$ENABLE_USER_ASSIGNED_MANAGED_IDENTITY" = "true" ]; then
   resourceTags="${LOG_FORWARDER_TAGS}" \
   eventhubConnectionClientId="${EVENT_HUB_CONNECTION_CLIENT_ID}" \
   eventhubConnectionCredentials="${EVENT_HUB_CONNECTION_CREDENTIALS}" \
-  eventhubConnectionFullyQualifiedNamespace="${EVENT_HUB_CONNECTION_FULLY_QUALIFIED_NAMESPACE}"
+  eventhubConnectionFullyQualifiedNamespace="${EVENT_HUB_CONNECTION_FULLY_QUALIFIED_NAMESPACE}" \
+  functionAppHttpsOnly="${AZ_FUNCTION_HTTPS_ONLY:-false}"
 else
   az deployment group create \
   --subscription ${SUBSCRIPTION_NAME} \
@@ -447,7 +456,8 @@ else
   deployActiveGateContainer="${DEPLOY_ACTIVEGATE}" \
   targetPaasToken="${TARGET_PAAS_TOKEN}" \
   filterConfig="${FILTER_CONFIG}" \
-  resourceTags="${LOG_FORWARDER_TAGS}"
+  resourceTags="${LOG_FORWARDER_TAGS}" \
+  functionAppHttpsOnly="${AZ_FUNCTION_HTTPS_ONLY:-false}"
 fi
 
 if [[ $? != 0 ]]; then
